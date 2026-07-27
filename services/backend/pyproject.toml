@@ -1,0 +1,28 @@
+[project]
+name = "backend"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "demucs>=4.0.1",
+    "torch>=2.13.0",
+    "torchcodec>=0.15.0",
+    "torchcrepe>=0.0.24",
+]
+
+[tool.uv]
+# demucs main pins torchaudio<2.2, but no torchaudio below 2.2 ships cp312 wheels.
+override-dependencies = ["torchaudio>=2.2"]
+
+[tool.uv.sources]
+demucs = { git = "https://github.com/adefossez/demucs" }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths=["tests"]
+pythonpath=["."]
+#addopts="-m not slow"
+#markers=["slow: exercises real ML models, downloads weights, CPU-heave"]
