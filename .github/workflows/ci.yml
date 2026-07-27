@@ -34,6 +34,8 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: services/backend/uv.lock
+      - name: Install ffmpeg
+        run: sudo apt-get install -y ffmpeg
       - name: Install Python deps
         run: uv sync
       - name: Install xvfb(Linux only)
