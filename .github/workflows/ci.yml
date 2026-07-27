@@ -40,7 +40,9 @@ jobs:
       - name: Install ffmpeg (macOS)
         if: matrix.os == 'macos-latest'
         run: brew install ffmpeg
-      - name: Install ffmpeg (Windows)
+      - name: Install Python deps
+        run: uv sync
+      - name: Provide FFmpeg DLLs to torchcodec (Windows)
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
@@ -48,9 +50,8 @@ jobs:
           Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\ffmpeg.zip"
           Expand-Archive "$env:RUNNER_TEMP\ffmpeg.zip" -DestinationPath "$env:RUNNER_TEMP\ffmpeg"
           $bin = (Get-ChildItem "$env:RUNNER_TEMP\ffmpeg" -Directory | Select-Object -First 1).FullName + "\bin"
-          Add-Content -Path $env:GITHUB_PATH -Value $bin
-      - name: Install Python deps
-        run: uv sync
+          $torchcodec = (uv run python -c "import importlib.util, os; print(os.path.dirname(importlib.util.find_spec('torchcodec').origin))").Trim()
+          Copy-Item "$bin\*.dll" -Destination $torchcodec -Force
       - name: Install xvfb(Linux only)
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y xvfb
