@@ -4,6 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
     "demucs>=4.0.1",
+    "mypy>=2.3.0",
     "torch>=2.13.0",
     "torchcodec>=0.15.0",
     "torchcrepe>=0.0.24",
@@ -22,7 +23,14 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths=["tests"]
-pythonpath=["."]
+testpaths = ["tests"]
+pythonpath = ["."]
 #addopts="-m not slow"
 #markers=["slow: exercises real ML models, downloads weights, CPU-heave"]
+
+[tool.mypy]
+python_version = "3.12"
+
+[[tool.mypy.overrides]]
+module = ["torchcrepe.*", "torchaudio.*"]
+ignore_missing_imports = true

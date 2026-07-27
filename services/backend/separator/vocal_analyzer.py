@@ -46,7 +46,7 @@ class StreamingPitchAnalyzer:
         f0, periodicity = self._pitch_detector.detect_pitch(
             self._buffer.unsqueeze(0), self._sr
         )
-        return f0[0, -1], periodicity[0, -1].item()
+        return f0[0, -1].item(), periodicity[0, -1].item()
 
     def reset(self) -> None:
         self._buffer = torch.zeros(0)
