@@ -1,6 +1,7 @@
 import pytest
 from separator.pitch_detector import PitchDetector
 
+
 def test_pitch_detector_detects_a4_pure_sine(sine_stereo):
     wav, sr = sine_stereo(freq_hz=440.0)
 
