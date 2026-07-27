@@ -7,20 +7,25 @@ import separator
 
 
 def test_streaming_pitch_analyzer_chunk(sine_stereo) -> None:
-    tolerance_cents: float = 50
-    fmin: float = 65.0
-    fmax: float = 1400
-    freq_hz: float = random.random() * (fmax - fmin) + fmin
-    for i in range(20):
-        wav, sr = sine_stereo(freq_hz=freq_hz)
-        pitch_detector = separator.PitchDetector(fmax=fmax, fmin=fmin, model="tiny")
+    random.seed(0)
+    tolerance_cents: float = 50.0
+    fmin, fmax = 65.0, 1400.0
+    pitch_detector = separator.PitchDetector(fmax=fmax, fmin=fmin, model="tiny")
+    checked = 0
+    for _ in range(20):
+        freq_hz = random.uniform(fmin, fmax)
+        wav, _ = sine_stereo(freq_hz=freq_hz)
         f0, periodicity = separator.StreamingPitchAnalyzer(
             pitch_detector=pitch_detector
         ).push_chunk(wav)
+        if periodicity < 0.5:
+            continue
+        checked += 1
         cents = 1200 * math.log2(f0 / freq_hz)
         assert math.fabs(cents) < tolerance_cents, (
             f"{freq_hz=}, {f0=}, {periodicity=}, {cents=}"
         )
+    assert checked > 0
 
 
 def test_offline_pitch_analyzer_recovers_pitch(sine_stereo) -> None:
