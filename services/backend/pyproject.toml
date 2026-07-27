@@ -30,6 +30,7 @@ pythonpath = ["."]
 
 [tool.mypy]
 python_version = "3.12"
+files = ["separator", "tests"]
 
 [[tool.mypy.overrides]]
 module = ["torchcrepe.*", "torchaudio.*"]
