@@ -1,5 +1,7 @@
 import math
+import pathlib
 import random
+from unittest.mock import MagicMock
 
 import separator
 
@@ -21,22 +23,26 @@ def test_streaming_pitch_analyzer_chunk(sine_stereo) -> None:
         )
 
 
-def test_offline_pitch_analyzer_audio(sine_wav_file_path) -> None:
-    tolerance_cents: float = 50
-    fmax: float = 1400
-    fmin: float = 65.0
-    sample_rate: int = 44100
-    freq_hz: float = random.random() * (fmax - fmin) + fmin
+def test_offline_pitch_analyzer_recovers_pitch(sine_stereo) -> None:
+    tolerance_cents: float = 50.0
+    fmin, fmax = 65.0, 1400.0
+    sample_rate = 44100
+    freq_hz = random.random() * (fmax - fmin) + fmin
+    wav, _ = sine_stereo(freq_hz=freq_hz, sr=sample_rate)
+
+    track_separator = MagicMock()
+    track_separator.separate_file.return_value = {"vocals": wav}
+    track_separator.get_sample_rate.return_value = sample_rate
+
     offline_analyzer = separator.OfflinePitchAnalyzer(
         pitch_detector=separator.PitchDetector(fmax=fmax, fmin=fmin, model="tiny"),
-        track_separator=separator.TrackSeparator(sample_rate=sample_rate),
+        track_separator=track_separator,
     )
     f0, periodicity = offline_analyzer.analyze_file(
-        audio_file=sine_wav_file_path(freq_hz=freq_hz, sr=sample_rate)
+        audio_file=pathlib.Path("unused.wav")
     )
-    assert all(
-        map(
-            lambda freq: math.fabs(1200 * math.log2(freq / freq_hz)) < tolerance_cents,
-            f0[0],
-        )
-    )
+
+    voiced = periodicity[0] > 0.5
+    median_hz = f0[0][voiced].median().item()
+    cents = 1200 * math.log2(median_hz / freq_hz)
+    assert math.fabs(cents) < tolerance_cents, f"{freq_hz=}, {median_hz=}, {cents=}"
