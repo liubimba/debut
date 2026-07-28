@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 dependencies = [
     "demucs>=4.0.1",
     "mypy>=2.3.0",
+    "pretty-midi>=0.2.11",
     "torch>=2.13.0",
     "torchcodec>=0.15.0",
     "torchcrepe>=0.0.24",
@@ -32,8 +33,8 @@ markers = [
 
 [tool.mypy]
 python_version = "3.12"
-files = ["separator", "tests"]
+files = ["debut", "tests"]
 
 [[tool.mypy.overrides]]
-module = ["torchcrepe.*", "torchaudio.*"]
+module = ["torchcrepe.*", "torchaudio.*", "pretty_midi.*"]
 ignore_missing_imports = true

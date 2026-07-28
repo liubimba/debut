@@ -1,6 +1,6 @@
 import pytest
 
-from separator.track_separator import TrackSeparator
+from debut.audio import TrackSeparator
 
 
 def test_track_separator_vocals_stem(sine_stereo):

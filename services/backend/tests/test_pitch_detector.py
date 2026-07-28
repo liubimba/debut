@@ -1,5 +1,5 @@
 import pytest
-from separator.pitch_detector import PitchDetector
+from debut.audio import PitchDetector
 
 
 def test_pitch_detector_detects_a4_pure_sine(sine_stereo):
