@@ -7,6 +7,7 @@ from debut.export import notes_to_wav
 from debut.transcription import Note, Pitch
 
 
+@pytest.mark.slow
 def test_notes_render_to_a_normalized_playable_wav(tmp_path: pathlib.Path):
     notes = [
         Note(Pitch.from_hz(440.0, 0.9), 0.0, 0.5),
