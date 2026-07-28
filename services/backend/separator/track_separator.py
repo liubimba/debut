@@ -13,7 +13,9 @@ class TrackSeparator:
         _origin, separated = self._separator.separate_audio_file(file=audio_file)
         return separated
 
-    def separate_audio(self, tensor: torch.Tensor, sr: int | None = None) ->  dict[str, torch.Tensor]:
+    def separate_audio(
+        self, tensor: torch.Tensor, sr: int | None = None
+    ) -> dict[str, torch.Tensor]:
         _origin, stems = self._separator.separate_tensor(wav=tensor, sr=sr)
         return stems
 

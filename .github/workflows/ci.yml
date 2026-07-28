@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - AVT*
+      - main
+
+jobs:
+  pre-commit:
+    name: pre-commit (lint+format)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: pre-commit/action@v3.0.1
+
+  backend:
+    name: backend (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: services/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/backend/uv.lock
+      - name: Install ffmpeg (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install ffmpeg (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install ffmpeg
+      - name: Install Python deps
+        run: uv sync
+      - name: Install xvfb(Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+      - name: mypy (types)
+        run: uv run mypy
+      - name: pytest (unit)
+        shell: bash
+        run: |
+          if find . -type f \( -name "test_*.py" -o -name "*_test.py" \) -not -path "./.venv/*" | grep -q .; then
+            if [ "$RUNNER_OS" = "Linux" ]; then
+              xvfb-run -a uv run pytest
+            else
+              uv run pytest
+            fi
+          else
+            echo "No backend tests yet — skipping pytest"
+          fi
