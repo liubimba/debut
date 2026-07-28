@@ -5,9 +5,8 @@ import torch
 
 
 class TrackSeparator:
-    def __init__(self, sample_rate: int = 44100):
+    def __init__(self) -> None:
         self._separator = demucs.api.Separator()
-        self._sample_rate = sample_rate
 
     def separate_file(self, audio_file: Path) -> dict[str, torch.Tensor]:
         _origin, separated = self._separator.separate_audio_file(file=audio_file)
@@ -19,5 +18,6 @@ class TrackSeparator:
         _origin, stems = self._separator.separate_tensor(wav=tensor, sr=sr)
         return stems
 
-    def get_sample_rate(self) -> int:
-        return self._sample_rate
+    @property
+    def sample_rate(self) -> int:
+        return self._separator.samplerate

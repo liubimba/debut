@@ -32,7 +32,7 @@ markers = [
 
 [tool.mypy]
 python_version = "3.12"
-files = ["separator", "tests"]
+files = ["debut", "tests"]
 
 [[tool.mypy.overrides]]
 module = ["torchcrepe.*", "torchaudio.*"]
