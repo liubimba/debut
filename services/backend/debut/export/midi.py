@@ -1,11 +1,15 @@
+import logging
 from pathlib import Path
 
 import pretty_midi
 
 from debut.transcription import Note
 
+logger = logging.getLogger(__name__)
+
 
 def notes_to_midi(notes: list[Note], path: Path) -> None:
+    logger.info("writing %s notes to MIDI %s", len(notes), path)
     build_midi(notes).write(str(path))
 
 

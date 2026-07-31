@@ -1,9 +1,13 @@
+import logging
+
 import torch
 from torch import Tensor
 
 from debut.audio.pitch_detector import PitchDetector
 from debut.transcription.note import Note
 from debut.transcription.pitch import Pitch
+
+logger = logging.getLogger(__name__)
 
 
 class OfflineNotesTranscriber:
@@ -19,8 +23,13 @@ class OfflineNotesTranscriber:
         self._max_gap = max_gap
 
     def transcribe(self, tensor: Tensor, sr: int) -> list[Note]:
+        logger.info("offline transcription started (sr=%s)", sr)
         f0, periodicity = self._pitch_detector.detect_pitch(tensor=tensor, sr=sr)
-        return self._clean(self._group(f0, periodicity, self._pitch_detector.frame_dt))
+        grouped = self._group(f0, periodicity, self._pitch_detector.frame_dt)
+        logger.debug("grouped into %s raw notes", len(grouped))
+        notes = self._clean(grouped)
+        logger.info("offline transcription finished: %s notes", len(notes))
+        return notes
 
     def _group(self, f0: Tensor, periodicity: Tensor, frame_dt: float) -> list[Note]:
         notes: list[Note] = []

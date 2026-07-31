@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 
 from debut.export import notes_to_midi, notes_to_wav
+from debut.logging_config import configure_logging
 from debut.transcription.song_transcriber import SongTranscriber
 
 
@@ -11,6 +12,8 @@ def main() -> None:
     parser.add_argument("out", type=Path)
     parser.add_argument("--wav", type=Path)
     args = parser.parse_args()
+
+    configure_logging()
 
     with args.song.open("rb") as handle:
         notes = SongTranscriber().transcribe(handle)

@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import torch
@@ -6,8 +7,11 @@ import torchaudio
 from debut.export.midi import build_midi
 from debut.transcription import Note
 
+logger = logging.getLogger(__name__)
+
 
 def notes_to_wav(notes: list[Note], path: Path, sample_rate: int = 44100) -> None:
+    logger.info("rendering %s notes to WAV %s (sr=%s)", len(notes), path, sample_rate)
     audio = build_midi(notes).synthesize(fs=sample_rate)
     wav = torch.tensor(audio, dtype=torch.float32).unsqueeze(0)
     peak = wav.abs().max()

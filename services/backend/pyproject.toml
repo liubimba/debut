@@ -1,15 +1,28 @@
 [project]
-name = "backend"
+name = "debut-backend"
+description = "Debut backend - job-board automation"
+authors = [{ name = "bimba", email = "liubimba01@gmail.com" }]
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "argparse>=1.4.0",
     "demucs>=4.0.1",
+    "fastapi>=0.140.13",
     "mypy>=2.3.0",
     "pretty-midi>=0.2.11",
+    "python-multipart>=0.0.32",
     "torch>=2.13.0",
     "torchcodec>=0.15.0",
     "torchcrepe>=0.0.24",
+    "uvicorn>=0.51.0",
 ]
+
+[project.scripts]
+debut-backend = "debut.app:main"
+
+[build-system]
+requires = ["uv_build>=0.11.12,<0.12.0"]
+build-backend = "uv_build"
 
 [tool.uv]
 # demucs main pins torchaudio<2.2, but no torchaudio below 2.2 ships cp312 wheels.
@@ -18,8 +31,13 @@ override-dependencies = ["torchaudio>=2.2"]
 [tool.uv.sources]
 demucs = { git = "https://github.com/adefossez/demucs" }
 
+[tool.uv.build-backend]
+module-name = "debut"
+module-root = ""
+
 [dependency-groups]
 dev = [
+    "httpx2>=2.9.1",
     "pytest>=9.1.1",
 ]
 
@@ -32,6 +50,7 @@ markers = [
 ]
 
 [tool.mypy]
+strict = true
 python_version = "3.12"
 files = ["debut", "tests"]
 
