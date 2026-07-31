@@ -1,4 +1,5 @@
 import pathlib
+from collections.abc import Callable
 
 import pytest
 import torch
@@ -6,8 +7,10 @@ import torchaudio
 
 
 @pytest.fixture
-def sine_stereo():
-    def _make(freq_hz=440.0, seconds=2.0, sr=44100):
+def sine_stereo() -> Callable[..., tuple[torch.Tensor, int]]:
+    def _make(
+        freq_hz: float = 440.0, seconds: float = 2.0, sr: int = 44100
+    ) -> tuple[torch.Tensor, int]:
         t = torch.arange(int(sr * seconds)) / sr
         mono = 0.5 * torch.sin(2 * torch.pi * freq_hz * t)
         return torch.stack([mono, mono]), sr
@@ -16,8 +19,12 @@ def sine_stereo():
 
 
 @pytest.fixture
-def sine_wav_file_path(tmp_path: pathlib.Path):
-    def _make(freq_hz=440.0, seconds=2.0, sr=44100):
+def sine_wav_file_path(
+    tmp_path: pathlib.Path,
+) -> Callable[..., pathlib.Path]:
+    def _make(
+        freq_hz: float = 440.0, seconds: float = 2.0, sr: int = 44100
+    ) -> pathlib.Path:
         t = torch.arange(int(sr * seconds)) / sr
         mono = 0.5 * torch.sin(2 * torch.pi * t * freq_hz)
         stereo = torch.stack([mono, mono])

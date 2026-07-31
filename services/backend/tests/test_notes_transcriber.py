@@ -3,15 +3,26 @@ from unittest.mock import patch
 import pytest
 import torch
 
-from debut.transcription import OfflineNotesTranscriber, StreamingNoteTranscriber
+from debut.transcription import (
+    Note,
+    OfflineNotesTranscriber,
+    StreamingNoteTranscriber,
+)
 
 
-def _frames(midi_values, periodicity=0.9):
+def _frames(
+    midi_values: list[int], periodicity: float = 0.9
+) -> tuple[torch.Tensor, torch.Tensor]:
     hz = [440.0 * 2 ** ((m - 69) / 12) for m in midi_values]
     return torch.tensor([hz]), torch.full((1, len(hz)), float(periodicity))
 
 
-def _transcribe(f0, periodicity, frame_dt=0.01, **kwargs):
+def _transcribe(
+    f0: torch.Tensor,
+    periodicity: torch.Tensor,
+    frame_dt: float = 0.01,
+    **kwargs: float,
+) -> list[Note]:
     with patch("debut.transcription.transcriber.PitchDetector") as detector_cls:
         detector = detector_cls.return_value
         detector.detect_pitch.return_value = (f0, periodicity)
@@ -19,7 +30,7 @@ def _transcribe(f0, periodicity, frame_dt=0.01, **kwargs):
         return OfflineNotesTranscriber(**kwargs).transcribe(torch.zeros(2, 4), sr=44100)
 
 
-def test_steady_pitch_becomes_one_note():
+def test_steady_pitch_becomes_one_note() -> None:
     f0, per = _frames([69] * 100)
 
     notes = _transcribe(f0, per)
@@ -30,7 +41,7 @@ def test_steady_pitch_becomes_one_note():
     assert notes[0].duration == pytest.approx(1.0, abs=0.02)
 
 
-def test_single_frame_glitch_is_absorbed():
+def test_single_frame_glitch_is_absorbed() -> None:
     sequence = [69] * 50
     sequence[25] = 70
     f0, per = _frames(sequence)
@@ -40,7 +51,7 @@ def test_single_frame_glitch_is_absorbed():
     assert [note.pitch.midi for note in notes] == [69]
 
 
-def test_two_distinct_notes_are_split_at_the_boundary():
+def test_two_distinct_notes_are_split_at_the_boundary() -> None:
     f0, per = _frames([60] * 40 + [64] * 40)
 
     notes = _transcribe(f0, per)
@@ -49,7 +60,7 @@ def test_two_distinct_notes_are_split_at_the_boundary():
     assert notes[0].end_time == pytest.approx(notes[1].start_time)
 
 
-def test_silence_breaks_a_note_in_two():
+def test_silence_breaks_a_note_in_two() -> None:
     f0, per = _frames([62] * 60)
     per[0, 28:33] = 0.1
 
@@ -58,7 +69,7 @@ def test_silence_breaks_a_note_in_two():
     assert len(notes) == 2
 
 
-def test_streaming_returns_current_pitch():
+def test_streaming_returns_current_pitch() -> None:
     f0 = torch.tensor([[440.0, 440.0, 440.0]])
     per = torch.tensor([[0.9, 0.9, 0.9]])
     with patch("debut.transcription.transcriber.PitchDetector") as detector_cls:
@@ -71,7 +82,7 @@ def test_streaming_returns_current_pitch():
     assert result.confidence == pytest.approx(0.9)
 
 
-def test_streaming_returns_none_when_unvoiced():
+def test_streaming_returns_none_when_unvoiced() -> None:
     f0 = torch.tensor([[440.0]])
     per = torch.tensor([[0.1]])
     with patch("debut.transcription.transcriber.PitchDetector") as detector_cls:

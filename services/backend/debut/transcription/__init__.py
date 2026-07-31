@@ -6,8 +6,8 @@ from debut.transcription.transcriber import (
 )
 
 __all__ = [
-    "Pitch",
     "Note",
     "OfflineNotesTranscriber",
+    "Pitch",
     "StreamingNoteTranscriber",
 ]
