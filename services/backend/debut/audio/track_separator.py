@@ -1,4 +1,6 @@
 import logging
+import os
+import tempfile
 import time
 from pathlib import Path
 from typing import cast
@@ -16,6 +18,17 @@ class TrackSeparator:
         logger.info(
             "demucs separator ready (samplerate=%s)", self._separator.samplerate
         )
+
+    def separate_bytes(self, data: bytes) -> dict[str, torch.Tensor]:
+        logger.info("separating stream ")
+        fd, name = tempfile.mkstemp(suffix=".audio")
+        path = Path(name)
+        try:
+            with os.fdopen(fd, "wb") as file:
+                file.write(data)
+            return self.separate_file(audio_file=path)
+        finally:
+            path.unlink(missing_ok=True)
 
     def separate_file(self, audio_file: Path) -> dict[str, torch.Tensor]:
         logger.info("separating file %s", audio_file)
