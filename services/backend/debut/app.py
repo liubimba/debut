@@ -6,8 +6,9 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import APIRouter, FastAPI
 
+from debut.api.audio import router as transcriber_router
 from debut.api.jobs_router import router as jobs_router
-from debut.api.transcriber import router as transcriber_router
+from debut.api.stems import router as stems_router
 from debut.core.builder import BackendBuilder
 from debut.logging_config import configure_logging
 
@@ -30,6 +31,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 router = APIRouter(prefix="/api/v1")
 router.include_router(transcriber_router)
 router.include_router(jobs_router)
+router.include_router(stems_router)
 
 app = FastAPI(title="Debut Backend API", version="0.0.1", lifespan=lifespan)
 app.include_router(router)

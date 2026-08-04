@@ -23,7 +23,7 @@ def test_post_transcribe_queues_job_and_returns_202(client: TestClient) -> None:
     app.dependency_overrides[get_jobs_manager] = lambda: manager
 
     response = client.post(
-        "/api/v1/transcriber/transcribe",
+        "/api/v1/audio/transcribe",
         files={"file": ("song.mp3", BytesIO(b"audio-bytes"), "audio/mpeg")},
     )
 
