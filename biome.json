@@ -1,22 +1,19 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
 	"files": {
-		"ignore": [
-			"**/node_modules/**",
-			"**/dist/**"
-		]
+		"includes": ["**", "!**/node_modules/**", "!**/dist/**"]
 	},
 	"formatter": {
 		"indentStyle": "tab"
 	},
 	"linter": {
 		"rules": {
-			"recommended": true
+			"preset": "recommended"
 		}
 	},
 	"overrides": [
 		{
-			"include": ["**/*.test.ts"],
+			"includes": ["**/*.test.ts"],
 			"linter": {
 				"rules": {
 					"suspicious": {

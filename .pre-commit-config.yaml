@@ -14,3 +14,11 @@ repos:
       - id: ruff
         args: ["--fix"]
       - id: ruff-format
+  - repo: local
+    hooks:
+      - id: biome
+        name: biome (web)
+        entry: web/node_modules/.bin/biome check --write --no-errors-on-unmatched
+        language: system
+        files: ^web/.*\.(ts|tsx|css|json)$
+        pass_filenames: true

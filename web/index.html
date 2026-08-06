@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" class="theme-light">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<title>Debut</title>
+		<script>
+			(() => {
+				const stored = localStorage.getItem("debut-theme");
+				const mode = stored === "dark" || stored === "light" ? stored : "system";
+				const resolved =
+					mode === "system"
+						? matchMedia("(prefers-color-scheme: dark)").matches
+							? "dark"
+							: "light"
+						: mode;
+				document.documentElement.className = `theme-${resolved}`;
+				document.documentElement.style.backgroundColor = resolved === "light" ? "#FFFFFF" : "#101012";
+			})();
+		</script>
+	</head>
+	<body>
+		<div id="root"></div>
+		<script type="module" src="/src/main.tsx"></script>
+	</body>
+</html>

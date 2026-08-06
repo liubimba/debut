@@ -1,0 +1,43 @@
+{
+	"name": "debut-web",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"dev:live": "vite --mode live",
+		"build": "npm run typecheck && vite build",
+		"preview": "vite preview",
+		"typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"test": "vitest run",
+		"verify:pages": "tsx scripts/verify-pages.ts http://localhost:4173",
+		"verify:contrast": "tsx scripts/check-contrast.ts http://localhost:4173",
+		"verify:perf": "tsx scripts/check-perf.ts http://localhost:4173",
+		"verify:browser": "npm run verify:pages && npm run verify:contrast && npm run verify:perf && npm run verify:singalong",
+		"verify": "npm run typecheck && npm run lint && npm run test && npm run build && start-server-and-test 'vite preview --port 4173 --strictPort' http://localhost:4173 verify:browser",
+		"verify:singalong": "tsx scripts/verify-singalong.ts http://localhost:4173"
+	},
+	"dependencies": {
+		"lucide-react": "^0.545.0",
+		"react": "^19.2.0",
+		"react-dom": "^19.2.0",
+		"react-router": "^8.3.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.7",
+		"@tailwindcss/vite": "^4.1.10",
+		"@types/audioworklet": "^0.0.86",
+		"@types/react": "^19.2.0",
+		"@types/react-dom": "^19.2.0",
+		"@vitejs/plugin-react": "^6.0.0",
+		"msw": "^2.11.0",
+		"playwright": "^1.62.1",
+		"start-server-and-test": "^3.0.0",
+		"tailwindcss": "^4.1.10",
+		"tsx": "^4.23.7",
+		"typescript": "^5.9.0",
+		"vite": "^8.2.0",
+		"vitest": "^4.1.0"
+	}
+}

@@ -1,0 +1,123 @@
+@import "tailwindcss";
+@import "./theme.css";
+
+@theme inline {
+	--color-*: initial;
+
+	--color-bg: var(--bg);
+	--color-surface: var(--surface);
+	--color-surface-2: var(--surface-2);
+	--color-border: var(--border);
+
+	--color-text: var(--text);
+	--color-text-muted: var(--text-muted);
+
+	--color-accent: var(--accent);
+	--color-accent-text: var(--accent-text);
+	--color-on-accent: var(--on-accent);
+
+	--color-error: var(--error);
+	--color-error-text: var(--error-text);
+	--color-on-error: var(--on-error);
+
+	--color-note: var(--note);
+	--color-note-active: var(--note-active);
+
+	--color-transparent: transparent;
+	--color-current: currentColor;
+
+	--font-sans:
+		system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+		sans-serif;
+
+	--text-*: initial;
+	--text-xs: 0.8125rem;
+	--text-xs--line-height: 1.4;
+	--text-sm: 0.9375rem;
+	--text-sm--line-height: 1.5;
+	--text-base: 1.0625rem;
+	--text-base--line-height: 1.6;
+	--text-lg: 1.375rem;
+	--text-lg--line-height: 1.35;
+	--text-xl: 1.75rem;
+	--text-xl--line-height: 1.25;
+	--text-2xl: 2.25rem;
+	--text-2xl--line-height: 1.15;
+	--text-3xl: 3.5rem;
+	--text-3xl--line-height: 1;
+
+	--radius-*: initial;
+	--radius-sm: 6px;
+	--radius-md: 10px;
+	--radius-lg: 14px;
+	--radius-pill: 999px;
+}
+
+@layer base {
+	html {
+		background-color: var(--bg);
+	}
+
+	body {
+		margin: 0;
+		background-color: var(--bg);
+		color: var(--text);
+		font-family: var(--font-sans);
+		font-size: var(--text-base);
+		-webkit-font-smoothing: antialiased;
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+
+	button {
+		font: inherit;
+		color: inherit;
+		cursor: pointer;
+	}
+
+	button:disabled {
+		cursor: not-allowed;
+	}
+}
+
+@utility numeric {
+	font-variant-numeric: tabular-nums;
+}
+
+@utility hit-44 {
+	position: relative;
+
+	&::after {
+		content: "";
+		position: absolute;
+		inset: 50% auto auto 50%;
+		translate: -50% -50%;
+		min-width: 44px;
+		min-height: 44px;
+		width: 100%;
+		height: 100%;
+	}
+}
+
+@keyframes indeterminate {
+	0% {
+		translate: -110% 0;
+	}
+	100% {
+		translate: 330% 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

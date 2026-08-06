@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - AVT*
+      - design
       - main
 
 jobs:
@@ -59,3 +60,23 @@ jobs:
           else
             echo "No backend tests yet — skipping pytest"
           fi
+
+  web:
+    name: web prototype
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install deps
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify
+        run: npm run verify
