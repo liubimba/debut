@@ -1,4 +1,5 @@
 import pathlib
+from collections.abc import Callable
 from contextlib import ExitStack
 from io import BytesIO
 from typing import cast
@@ -13,79 +14,62 @@ from debut.transcription.song_transcriber import SongTranscriber
 
 def _mocked() -> tuple[ExitStack, MagicMock, MagicMock]:
     stack = ExitStack()
-    separator = stack.enter_context(
-        patch("debut.transcription.song_transcriber.TrackSeparator")
-    ).return_value
+    stack.enter_context(patch("debut.transcription.song_transcriber.TrackSeparator"))
+    load = stack.enter_context(patch("debut.transcription.song_transcriber.torchaudio"))
     transcriber = stack.enter_context(
         patch("debut.transcription.song_transcriber.OfflineNotesTranscriber")
     ).return_value
-    return stack, separator, transcriber
+    return stack, load, transcriber
 
 
-def test_feeds_vocals_stem_and_separator_rate_to_transcriber() -> None:
+def test_decodes_audio_and_feeds_it_to_notes_transcriber() -> None:
     vocals = torch.zeros(2, 8)
     note = Note(Pitch.from_hz(440.0, 0.9), 0.0, 1.0)
-    stack, separator, transcriber = _mocked()
+    stack, torchaudio, transcriber = _mocked()
     with stack:
-        separator.separate_file.return_value = {
-            "vocals": vocals,
-            "drums": torch.zeros(2, 8),
-        }
-        separator.sample_rate = 32000
+        torchaudio.load.return_value = (vocals, 32000)
         transcriber.transcribe.return_value = [note]
+        audio = BytesIO(b"vocals-bytes")
 
-        result = SongTranscriber().transcribe(BytesIO(b"audio-bytes"))
+        result = SongTranscriber().transcribe(audio)
 
     assert result == [note]
-    audio_arg, sr_arg = transcriber.transcribe.call_args.args
-    assert audio_arg is vocals
+    assert torchaudio.load.call_args.args[0] is audio
+    tensor_arg, sr_arg = transcriber.transcribe.call_args.args
+    assert tensor_arg is vocals
     assert sr_arg == 32000
 
 
-def test_writes_uploaded_bytes_to_a_file_then_removes_it() -> None:
-    seen: dict[str, object] = {}
-
-    def fake_separate(audio_file: pathlib.Path) -> dict[str, torch.Tensor]:
-        seen["path"] = audio_file
-        seen["present_during_separation"] = audio_file.exists()
-        seen["content"] = audio_file.read_bytes()
-        return {"vocals": torch.zeros(2, 8)}
-
-    stack, separator, transcriber = _mocked()
+def test_does_not_separate_the_incoming_audio() -> None:
+    stack, torchaudio, transcriber = _mocked()
     with stack:
-        separator.separate_file.side_effect = fake_separate
-        separator.sample_rate = 44100
+        torchaudio.load.return_value = (torch.zeros(2, 8), 44100)
         transcriber.transcribe.return_value = []
+        song_transcriber = SongTranscriber()
+        separator = cast(MagicMock, song_transcriber._track_separator)
 
-        SongTranscriber().transcribe(BytesIO(b"payload"))
+        song_transcriber.transcribe(BytesIO(b"vocals-bytes"))
 
-    assert seen["present_during_separation"] is True
-    assert seen["content"] == b"payload"
-    assert not cast(pathlib.Path, seen["path"]).exists()
+        assert separator.separate_file.call_count == 0
+        assert separator.separate_bytes.call_count == 0
 
 
-def test_temp_file_removed_even_when_separation_fails() -> None:
-    seen: dict[str, pathlib.Path] = {}
-
-    def boom(audio_file: pathlib.Path) -> dict[str, torch.Tensor]:
-        seen["path"] = audio_file
-        raise RuntimeError("separation failed")
-
-    stack, separator, _transcriber = _mocked()
+def test_decoding_failure_propagates() -> None:
+    stack, torchaudio, _transcriber = _mocked()
     with stack:
-        separator.separate_file.side_effect = boom
+        torchaudio.load.side_effect = RuntimeError("broken audio")
 
-        with pytest.raises(RuntimeError):
-            SongTranscriber().transcribe(BytesIO(b"payload"))
-
-    assert not seen["path"].exists()
+        with pytest.raises(RuntimeError, match="broken audio"):
+            SongTranscriber().transcribe(BytesIO(b"not-audio"))
 
 
 @pytest.mark.slow
-def test_real_song_yields_notes_in_vocal_range(data_dir: pathlib.Path) -> None:
-    song = data_dir / "runaway.mp3"
+def test_real_vocals_yield_notes_in_vocal_range(
+    sine_wav_file_path: Callable[..., pathlib.Path],
+) -> None:
+    path: pathlib.Path = sine_wav_file_path(freq_hz=220.0, seconds=1.0)
 
-    with song.open("rb") as handle:
+    with path.open("rb") as handle:
         notes = SongTranscriber().transcribe(handle)
 
     assert notes
