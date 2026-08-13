@@ -1,4 +1,18 @@
 <resources>
- <string name="nav_library">Библиотека</string>
- <string name="nav_settings">Настройки</string>
+    <string name="nav_library">Библиотека</string>
+    <string name="nav_settings">Настройки</string>
+    <string name="add_song_title">Добавить песню</string>
+    <string name="add_song_choose_tip">Выберите аудио файл</string>
+    <string name="add_song_choose_button">Выбрать файл</string>
+    <string name="add_song_back_title">Мой дебют</string>
+    <string name="add_song_cancel">Отменить</string>
+    <string name="add_song_sing_it">Петь</string>
+    <string name="add_song_add_another">Добавить еще</string>
+    <string name="add_song_retry">Попробовать снова</string>
+    <string name="add_song_failed_title">Что-то пошло не так</string>
+    <string name="add_song_elapsed">%1$d с</string>
+    <string name="stage_uploading">Ждём очереди</string>
+    <string name="stage_separating">Убираем голос оригинала</string>
+    <string name="stage_downloading_vocals">Забираем голос</string>
+    <string name="stage_transcribing">Разбираем мелодию</string>
 </resources>
