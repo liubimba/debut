@@ -32,9 +32,12 @@ fun AddSongFailed(
 ) {
     AddSongCard(modifier) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(AddSongDefaults.inlineSpacing),
+            horizontalArrangement = Arrangement.spacedBy(
+                space = 8.dp,
+                alignment = Alignment.CenterHorizontally
+            ),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         ) {
             Icon(
                 imageVector = Lucide.TriangleAlert,

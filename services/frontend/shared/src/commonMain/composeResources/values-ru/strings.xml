@@ -1,6 +1,7 @@
 <resources>
     <string name="nav_library">Библиотека</string>
     <string name="nav_settings">Настройки</string>
+    <string name="nav_add_song">Добавить</string>
     <string name="add_song_title">Добавить песню</string>
     <string name="add_song_choose_tip">Выберите аудио файл</string>
     <string name="add_song_choose_button">Выбрать файл</string>
