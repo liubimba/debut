@@ -7,7 +7,6 @@ internal object AddSongDefaults {
     val cardPadding = 20.dp
     val compactScreenPadding = 16.dp
     val expandedScreenPadding = 24.dp
-    val compactWidthThreshold = 600.dp
 
     val blockSpacing = 24.dp
     val contentSpacing = 16.dp

@@ -3,7 +3,7 @@ package com.liubimba.debut.ui.addsong
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -26,6 +26,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Lucide
 import com.liubimba.debut.data.repository.SongsRepository
+import com.liubimba.debut.ui.extensions.LocalWindowSize
+import com.liubimba.debut.ui.extensions.WindowSize
 import debut.shared.generated.resources.Res
 import debut.shared.generated.resources.add_song_back_title
 import io.github.vinceglb.filekit.dialogs.FileKitType
@@ -54,19 +56,18 @@ fun AddSongScreen(
         scope.launch { viewModel.import(file.name, file.readBytes()) }
     }
 
-    BoxWithConstraints(modifier.fillMaxSize()) {
-        val screenPadding = if (maxWidth < AddSongDefaults.compactWidthThreshold) {
-            AddSongDefaults.compactScreenPadding
-        } else {
-            AddSongDefaults.expandedScreenPadding
-        }
+    val compact = LocalWindowSize.current == WindowSize.Compact
+    val screenPadding = if (compact) {
+        AddSongDefaults.compactScreenPadding
+    } else {
+        AddSongDefaults.expandedScreenPadding
+    }
 
+    Box(modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize().padding(screenPadding),
             verticalArrangement = Arrangement.spacedBy(AddSongDefaults.contentSpacing),
         ) {
-            BackButton(onBack)
-
             AnimatedContent(targetState = state) { current ->
                 when (current) {
                     is ImportState.Idle -> AddSongDropZone(onPick = launcher::launch)
