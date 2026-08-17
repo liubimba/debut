@@ -15,5 +15,14 @@
     <string name="stage_uploading">Ждём очереди</string>
     <string name="stage_separating">Убираем голос оригинала</string>
     <string name="stage_downloading_vocals">Забираем голос</string>
+    <string name="stage_downloading_bass">Забираем басс</string>
+    <string name="stage_downloading_drums">Забираем барабаны</string>
+    <string name="stage_downloading_other">Забираем оставшееся</string>
     <string name="stage_transcribing">Разбираем мелодию</string>
+    <string name="tempo">Темп</string>
+    <string name="range">Диапазон</string>
+    <string name="lastTake">Последняя запись</string>
+    <string name="library_empty">Пока пусто</string>
+    <string name="song_tempo_value">%1$d уд/мин</string>
+    <string name="song_unknown_value">—</string>
 </resources>

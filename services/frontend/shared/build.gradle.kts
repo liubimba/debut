@@ -38,6 +38,7 @@ kotlin {
             implementation(libs.compose.uiTooling)
         }
         commonMain.dependencies {
+            implementation(libs.navigation.compose)
             implementation("com.composables:icons-lucide:1.1.0")
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.cio)
@@ -53,6 +54,10 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.filekit.dialogs.compose)
+            implementation(libs.kotlinx.io.core)
+
+            implementation(libs.kermit)
+            implementation(libs.ktor.client.logging)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

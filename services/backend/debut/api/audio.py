@@ -10,6 +10,7 @@ from debut.api.dependencies import (
     JobsManagerDep,
     SongTranscriberDep,
     StemsStoreDep,
+    TrackMetadataReaderDep,
     TrackSeparatorDep,
 )
 from debut.api.jobs import Job
@@ -22,6 +23,10 @@ router = APIRouter(prefix="/audio", tags=["audio"])
 class AudioSeparateJobResponse(BaseModel):
     stem_id: str
     stems: list[str]
+    duration_seconds: float
+    tempo_bpm: float | None
+    title: str | None
+    artist: str | None
 
 
 @router.post("/transcribe", status_code=status.HTTP_202_ACCEPTED)
@@ -42,6 +47,7 @@ async def audio_separate(
     track_separator: TrackSeparatorDep,
     jobs_manager: JobsManagerDep,
     stems_store: StemsStoreDep,
+    metadata_reader: TrackMetadataReaderDep,
     file: UploadFile,
     sample_rate: int = Form(44100),
     stem_id: str | None = Form(None),
@@ -51,11 +57,16 @@ async def audio_separate(
     sid = stem_id or uuid.uuid4().hex
 
     def run() -> AudioSeparateJobResponse:
-        saved = stems_store.save(
-            track_separator.separate_bytes(data), sample_rate=sample_rate, stem_id=sid
-        )
+        stems = track_separator.separate_bytes(data)
+        saved = stems_store.save(stems, sample_rate=sample_rate, stem_id=sid)
+        metadata = metadata_reader.read(data=data, stems=stems, sample_rate=sample_rate)
         return AudioSeparateJobResponse(
-            stem_id=sid, stems=[stem.name for stem in saved]
+            stem_id=sid,
+            stems=[stem.name for stem in saved],
+            duration_seconds=metadata.duration_seconds,
+            tempo_bpm=metadata.tempo_bpm,
+            title=metadata.title,
+            artist=metadata.artist,
         )
 
     job = jobs_manager.queue(run)

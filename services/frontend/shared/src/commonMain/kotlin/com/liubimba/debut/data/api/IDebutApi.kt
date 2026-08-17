@@ -1,7 +1,7 @@
 package com.liubimba.debut.data.api
 
-import com.liubimba.debut.data.dto.JobDTO
-import com.liubimba.debut.data.dto.StemDTO
+import com.liubimba.debut.data.api.dto.JobDTO
+import com.liubimba.debut.data.api.dto.StemDTO
 
 interface IDebutApi {
     val audio: IAudio

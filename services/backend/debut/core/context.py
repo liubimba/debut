@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from debut.api.jobs.jobs_manager import JobsManager
 from debut.audio import TrackSeparator
 from debut.audio.stems_store import StemsStore
+from debut.audio.track_metadata import TrackMetadataReader
 from debut.transcription.song_transcriber import SongTranscriber
 
 
@@ -12,3 +13,4 @@ class AppContext:
     jobs_manager: JobsManager
     track_separator: TrackSeparator
     stems_store: StemsStore
+    track_metadata_reader: TrackMetadataReader

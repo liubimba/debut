@@ -15,5 +15,14 @@
     <string name="stage_uploading">Waiting its turn</string>
     <string name="stage_separating">Taking the original singer out</string>
     <string name="stage_downloading_vocals">Fetching the voice</string>
+    <string name="stage_downloading_bass">Fetching the bass</string>
+    <string name="stage_downloading_drums">Fetching the drums</string>
+    <string name="stage_downloading_other">Fetching other</string>
     <string name="stage_transcribing">Working out the melody</string>
+    <string name="tempo">Tempo</string>
+    <string name="range">Range</string>
+    <string name="lastTake">Last take</string>
+    <string name="library_empty">Nothing here yet</string>
+    <string name="song_tempo_value">%1$d bpm</string>
+    <string name="song_unknown_value">—</string>
 </resources>

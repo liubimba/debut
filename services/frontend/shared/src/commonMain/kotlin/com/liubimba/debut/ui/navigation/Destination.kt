@@ -14,9 +14,10 @@ import org.jetbrains.compose.resources.StringResource
 enum class Destination(
     val titleRes: StringResource,
     val icon: ImageVector,
+    val route: Any,
     val pinnedToEnd: Boolean = false,
 ) {
-    Library(Res.string.nav_library, Lucide.Music),
-    Settings(Res.string.nav_settings, Lucide.Settings),
-    AddSong(Res.string.nav_add_song, Lucide.Plus, pinnedToEnd = true),
+    Library(Res.string.nav_library, Lucide.Music, LibraryGraph),
+    Settings(Res.string.nav_settings, Lucide.Settings, SettingsRoute),
+    AddSong(Res.string.nav_add_song, Lucide.Plus, AddSongRoute, pinnedToEnd = true),
 }
