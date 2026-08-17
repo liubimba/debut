@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Music
-import com.liubimba.debut.data.repository.ImportedSong
+import com.liubimba.debut.data.entity.SongMetadata
 import com.liubimba.debut.ui.components.UnderlineButton
 import com.liubimba.debut.ui.theme.PillShape
 import debut.shared.generated.resources.Res
@@ -25,7 +25,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AddSongDone(
-    song: ImportedSong,
+    song: SongMetadata,
     filename: String,
     elapsedSeconds: Int,
     onSing: () -> Unit,

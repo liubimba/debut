@@ -1,12 +1,12 @@
 package com.liubimba.debut.ui.addsong
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +33,9 @@ import com.liubimba.debut.data.repository.ImportStage
 import com.liubimba.debut.ui.theme.DebutTheme
 import debut.shared.generated.resources.Res
 import debut.shared.generated.resources.add_song_elapsed
+import debut.shared.generated.resources.stage_downloading_bass
+import debut.shared.generated.resources.stage_downloading_drums
+import debut.shared.generated.resources.stage_downloading_other
 import debut.shared.generated.resources.stage_downloading_vocals
 import debut.shared.generated.resources.stage_separating
 import debut.shared.generated.resources.stage_transcribing
@@ -47,6 +50,9 @@ internal fun ImportStage.titleResource(): StringResource = when (this) {
     ImportStage.SEPARATING -> Res.string.stage_separating
     ImportStage.DOWNLOADING_VOCALS -> Res.string.stage_downloading_vocals
     ImportStage.TRANSCRIBING -> Res.string.stage_transcribing
+    ImportStage.DOWNLOADING_BASS -> Res.string.stage_downloading_bass
+    ImportStage.DOWNLOADING_DRUMS -> Res.string.stage_downloading_drums
+    ImportStage.DOWNLOADING_OTHER -> Res.string.stage_downloading_other
 }
 
 internal fun ImportStage.statusAt(current: ImportStage?): StageStatus = when {

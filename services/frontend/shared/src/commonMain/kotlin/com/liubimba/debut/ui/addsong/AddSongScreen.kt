@@ -39,12 +39,12 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AddSongScreen(
-    repository: SongsRepository,
+    songsRepository: SongsRepository,
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
     onSing: (String) -> Unit = {},
 ) {
-    val viewModel: AddSongViewModel = viewModel { AddSongViewModel(repository) }
+    val viewModel: AddSongViewModel = viewModel { AddSongViewModel(songsRepository) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val elapsedSeconds by viewModel.elapsedSeconds.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -83,7 +83,7 @@ fun AddSongScreen(
                         song = current.song,
                         filename = current.filename,
                         elapsedSeconds = elapsedSeconds,
-                        onSing = { onSing(current.song.stemId) },
+                        onSing = { onSing(current.song.id) },
                         onAddAnother = viewModel::reset,
                     )
 

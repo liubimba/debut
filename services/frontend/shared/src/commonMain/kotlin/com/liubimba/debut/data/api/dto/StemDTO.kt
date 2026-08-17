@@ -1,4 +1,4 @@
-package com.liubimba.debut.data.dto
+package com.liubimba.debut.data.api.dto
 
 import kotlinx.serialization.Serializable
 
