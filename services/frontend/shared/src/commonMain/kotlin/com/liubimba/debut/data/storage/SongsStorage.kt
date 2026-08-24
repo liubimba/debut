@@ -2,6 +2,7 @@ package com.liubimba.debut.data.storage
 
 import co.touchlab.kermit.Logger
 import com.liubimba.debut.data.api.dto.NoteDTO
+import com.liubimba.debut.data.audio.Waveform
 import com.liubimba.debut.data.entity.SongMetadata
 import com.liubimba.debut.data.entity.StemType
 import io.github.vinceglb.filekit.utils.div
@@ -15,9 +16,9 @@ import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 import kotlinx.io.readString
 import kotlinx.io.writeString
-import kotlin.random.Random
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.random.Random
 
 class SongsStorage(private val root: Path) {
     private val json = Json { ignoreUnknownKeys = true }
@@ -28,11 +29,13 @@ class SongsStorage(private val root: Path) {
     val meta = Meta()
     val stems = Stems()
     val notes = Notes()
+    val waveforms = Waveforms()
 
     suspend fun delete(id: String): Unit = writes.withLock {
         meta.deleteUnlocked(id)
         stems.deleteUnlocked(id)
         notes.deleteUnlocked(id)
+        waveforms.deleteUnlocked(id)
         log.i { "deleted song $id" }
     }
 
@@ -109,6 +112,8 @@ class SongsStorage(private val root: Path) {
             log.d { "deleted stems of $id" }
         }
 
+        fun pathOf(id: String, type: StemType): Path = path.div(id).div(type.name)
+
         suspend fun get(id: String, type: StemType): ByteArray = withContext(ioDispatcher) {
             val source = path.div(id).div(type.name)
             val bytes = SystemFileSystem.source(source).buffered().readByteArray()
@@ -117,7 +122,7 @@ class SongsStorage(private val root: Path) {
         }
 
         fun has(id: String, type: StemType): Boolean =
-            SystemFileSystem.exists(path.div(id).div((type.name)))
+            SystemFileSystem.exists(pathOf(id, type))
     }
 
     inner class Notes {
@@ -173,6 +178,48 @@ class SongsStorage(private val root: Path) {
         log.v { "wrote $target" }
         return target
     }
+
+    inner class Waveforms {
+        private val path = root.div("waveforms")
+
+        suspend fun save(id: String, type: StemType, waveform: Waveform): Path =
+            writes.withLock {
+                withContext(ioDispatcher) {
+                    val target = writeAtomically(path.div(id).div(type.name)) {
+                        it.writeString(json.encodeToString(waveform))
+                    }
+                    log.d { "saved ${waveform.peaks.size} buckets of $type/$id to $target" }
+                    target
+                }
+            }
+
+        suspend fun get(id: String, type: StemType): Waveform? = withContext(ioDispatcher) {
+            val source = path.div(id).div(type.name)
+            if (!SystemFileSystem.exists(source)) {
+                return@withContext null
+            }
+            runCatching {
+                SystemFileSystem.source(source).buffered().use {
+                    json.decodeFromString<Waveform>(it.readString())
+                }
+            }.onSuccess { waveform ->
+                log.d { "read ${waveform.peaks.size} buckets of $type/$id from $source" }
+            }.getOrElse { failure ->
+                log.e(failure) { "unreadable waveform at $source, it will be recomputed" }
+                null
+            }
+        }
+
+        suspend fun delete(id: String): Unit = writes.withLock {
+            deleteUnlocked(id)
+        }
+
+        internal suspend fun deleteUnlocked(id: String) = withContext(ioDispatcher) {
+            deleteRecursively(path.div(id))
+            log.d { "deleted waveforms of $id" }
+        }
+    }
+
 
     private companion object {
         const val TAG = "SongsStorage"

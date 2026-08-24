@@ -22,7 +22,16 @@
     <string name="tempo">Tempo</string>
     <string name="range">Range</string>
     <string name="lastTake">Last take</string>
+    <string name="length">Length</string>
     <string name="library_empty">Nothing here yet</string>
     <string name="song_tempo_value">%1$d bpm</string>
     <string name="song_unknown_value">—</string>
+    <string name="vocal_track_type">Vocal track</string>
+    <string name="notes_track_type">Vocal notes</string>
+    <string name="record">Record</string>
+    <string name="stop">Stop</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="track_instrumental">Instrumental</string>
+    <string name="track_vocalist">Vocalist</string>
 </resources>

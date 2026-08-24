@@ -23,6 +23,15 @@
     <string name="range">Диапазон</string>
     <string name="lastTake">Последняя запись</string>
     <string name="library_empty">Пока пусто</string>
+    <string name="length">Длительность</string>
     <string name="song_tempo_value">%1$d уд/мин</string>
     <string name="song_unknown_value">—</string>
+    <string name="vocal_track_type">Вокал</string>
+    <string name="notes_track_type">Ноты</string>
+    <string name="record">Записать</string>
+    <string name="stop">Стоп</string>
+    <string name="play">Проиграть</string>
+    <string name="pause">Пауза</string>
+    <string name="track_instrumental">Минус</string>
+    <string name="track_vocalist">Вокал</string>
 </resources>

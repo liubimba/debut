@@ -13,6 +13,8 @@ import debut.shared.generated.resources.space_grotesk_regular
 import debut.shared.generated.resources.space_grotesk_semibold
 import org.jetbrains.compose.resources.Font
 
+private const val TABULAR_FIGURES = "tnum"
+
 @Composable
 fun debutDisplayFamily(): FontFamily = FontFamily(
     Font(Res.font.space_grotesk_regular, FontWeight.Normal),
@@ -66,12 +68,14 @@ fun debutTypography(): Typography {
             fontWeight = FontWeight.Medium,
             fontSize = 22.sp,
             lineHeight = 29.7.sp,
+            fontFeatureSettings = TABULAR_FIGURES,
         ),
         titleMedium = TextStyle(
             fontFamily = display,
             fontWeight = FontWeight.Medium,
             fontSize = 17.sp,
             lineHeight = 27.2.sp,
+            fontFeatureSettings = TABULAR_FIGURES,
         ),
         titleSmall = TextStyle(
             fontFamily = display,
@@ -102,6 +106,7 @@ fun debutTypography(): Typography {
             fontWeight = FontWeight.Medium,
             fontSize = 15.sp,
             lineHeight = 22.5.sp,
+            fontFeatureSettings = TABULAR_FIGURES,
         ),
         labelMedium = TextStyle(
             fontFamily = body,
@@ -115,6 +120,7 @@ fun debutTypography(): Typography {
             fontSize = 11.sp,
             lineHeight = 15.4.sp,
             letterSpacing = 0.09.em,
+            fontFeatureSettings = TABULAR_FIGURES,
         ),
     )
 }
