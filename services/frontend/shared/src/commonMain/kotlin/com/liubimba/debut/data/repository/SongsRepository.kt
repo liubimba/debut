@@ -7,16 +7,20 @@ import com.liubimba.debut.data.api.dto.JobStateDTO
 import com.liubimba.debut.data.api.dto.NoteDTO
 import com.liubimba.debut.data.api.dto.SeparateResultDTO
 import com.liubimba.debut.data.api.dto.resultAs
+import com.liubimba.debut.data.audio.WavReader
+import com.liubimba.debut.data.audio.Waveform
 import com.liubimba.debut.data.entity.SongMetadata
 import com.liubimba.debut.data.entity.StemType
 import com.liubimba.debut.data.entity.vocalRange
 import com.liubimba.debut.data.storage.SongsStorage
+import com.liubimba.debut.data.storage.ioDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.TimeSource
 
 enum class ImportStage {
@@ -62,28 +66,16 @@ class SongsRepository(
         log.i { "separated $name into stem ${separated.stemId}: ${separated.stems}" }
 
         onStage(ImportStage.DOWNLOADING_VOCALS)
-        val vocals = api.stem.download(separated.stemId, VOCALS_STEM)
-        val vocalsPath =
-            localStorage.stems.save(id = separated.stemId, type = StemType.VOCALS, bytes = vocals)
-        log.d { "stored vocals at $vocalsPath" }
+        val vocals = fetchStem(separated.stemId, VOCALS_STEM, StemType.VOCALS)
 
         onStage(ImportStage.DOWNLOADING_BASS)
-        val bass = api.stem.download(separated.stemId, BASS_STEM)
-        val bassPath =
-            localStorage.stems.save(id = separated.stemId, type = StemType.BASS, bytes = bass)
-        log.d { "stored bass at $bassPath" }
+        fetchStem(separated.stemId, BASS_STEM, StemType.BASS)
 
         onStage(ImportStage.DOWNLOADING_DRUMS)
-        val drums = api.stem.download(separated.stemId, DRUMS_STEM)
-        val drumsPath =
-            localStorage.stems.save(id = separated.stemId, type = StemType.DRUMS, bytes = drums)
-        log.d { "stored drums at $drumsPath" }
+        fetchStem(separated.stemId, DRUMS_STEM, StemType.DRUMS)
 
         onStage(ImportStage.DOWNLOADING_OTHER)
-        val other = api.stem.download(separated.stemId, OTHER_STEM)
-        val otherPath =
-            localStorage.stems.save(id = separated.stemId, type = StemType.OTHER, bytes = other)
-        log.d { "stored other at $otherPath" }
+        fetchStem(separated.stemId, OTHER_STEM, StemType.OTHER)
 
         onStage(ImportStage.TRANSCRIBING)
         val transcribeJob = api.audio.transcribe(VOCALS_STEM, vocals)
@@ -122,6 +114,18 @@ class SongsRepository(
         val stored = localStorage.meta.readAll()
         _songs.value = stored
         log.i { "loaded ${stored.size} songs in ${started.elapsedNow()}" }
+    }
+
+    private suspend fun fetchStem(stemId: String, remoteName: String, type: StemType): ByteArray {
+        val bytes = api.stem.download(stemId, remoteName)
+        val path = localStorage.stems.save(id = stemId, type = type, bytes = bytes)
+        val waveform = withContext(ioDispatcher) {
+            WavReader(path).use {
+                Waveform.of(it)
+            }
+        }
+        localStorage.waveforms.save(id = stemId, type = type, waveform = waveform)
+        return bytes
     }
 
     private suspend fun awaitJob(jobId: String): JobDTO {

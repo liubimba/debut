@@ -46,14 +46,10 @@ fun App(container: AppContainer) {
         ) {
             AppProvider {
                 AppScaffold(current = currentTab, onSelect = { tab ->
-                    log.d { "navigation from $currentTab to $tab" }
+                    log.d { "navigating from $currentTab to $tab" }
                     navController.navigate(tab.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-
+                        popUpTo(navController.graph.findStartDestination().id)
                         launchSingleTop = true
-                        restoreState = true
                     }
                 }) {
                     NavHost(
@@ -67,7 +63,7 @@ fun App(container: AppContainer) {
                                     songsRepository = container.songsRepository,
                                     onAddSong = { navController.navigate(AddSongRoute) },
                                     onSelectSong = { song ->
-                                        log.d { "opening song $song" }
+                                        log.d { "opening song ${song.id}" }
                                         navController.navigate(SongRoute(song.id))
                                     }
                                 )
@@ -76,7 +72,9 @@ fun App(container: AppContainer) {
                             composable<SongRoute> { backStackEntry ->
                                 SongScreen(
                                     id = backStackEntry.toRoute<SongRoute>().id,
-                                    songsRepository = container.songsRepository
+                                    songsRepository = container.songsRepository,
+                                    songsStorage = container.songsStorage,
+                                    onBack = { navController.popBackStack() },
                                 )
                             }
                         }

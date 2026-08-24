@@ -1,5 +1,6 @@
 package com.liubimba.debut.data.storage
 
+import com.liubimba.debut.data.audio.Waveform
 import com.liubimba.debut.data.entity.SongMetadata
 import com.liubimba.debut.data.entity.StemType
 import kotlinx.coroutines.runBlocking
@@ -11,6 +12,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SongsStorageTest {
@@ -50,6 +52,31 @@ class SongsStorageTest {
         assertFalse(storage.stems.has("song", StemType.VOCALS))
         assertFalse(storage.stems.has("song", StemType.DRUMS))
         assertTrue(storage.meta.readAll().isEmpty())
+    }
+
+    @Test
+    fun savedWaveformIsReadBack() = runBlocking {
+        val waveform = Waveform(framesPerBucket = 2048, peaks = floatArrayOf(0.1f, 0.9f, 0.4f))
+
+        storage.waveforms.save("song", StemType.VOCALS, waveform)
+        val restored = storage.waveforms.get("song", StemType.VOCALS)
+
+        assertEquals(2048, restored?.framesPerBucket)
+        assertEquals(listOf(0.1f, 0.9f, 0.4f), restored?.peaks?.toList())
+    }
+
+    @Test
+    fun missingWaveformIsNull() = runBlocking {
+        assertNull(storage.waveforms.get("song", StemType.DRUMS))
+    }
+
+    @Test
+    fun deleteRemovesWaveformsToo() = runBlocking {
+        storage.waveforms.save("song", StemType.VOCALS, Waveform(2048, floatArrayOf(0.5f)))
+
+        storage.delete("song")
+
+        assertNull(storage.waveforms.get("song", StemType.VOCALS))
     }
 
     @Test
