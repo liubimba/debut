@@ -34,4 +34,7 @@
     <string name="pause">Пауза</string>
     <string name="track_instrumental">Минус</string>
     <string name="track_vocalist">Вокал</string>
+    <string name="reset_area">Сбросить выделение</string>
+    <string name="song_no_stems">Файлы песни не найдены</string>
+    <string name="song_playback_unavailable">Воспроизведение недоступно на этом устройстве</string>
 </resources>

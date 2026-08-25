@@ -22,5 +22,8 @@ internal object SongScreenDefaults {
 
     val barWidth = 2.dp
     val barGap = 1.dp
+    val gripHeight = 24.dp
+    const val gripWidthFactor = 2f
     const val minBarHeightFraction = 0.02f
+    const val outsideAreaAlpha = 0.3f
 }

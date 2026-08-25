@@ -40,9 +40,7 @@ class StemMixer(private val tracks: List<MixerTrack>) : AutoCloseable {
         for (track in tracks) {
             val read = track.reader.readFrames(scratch, frames)
             produced = maxOf(produced, read)
-            log.d { "produced $produced frames $frames" }
             if (track.muted || track.gain == 0f) {
-                log.d { "muted" }
                 continue
             }
             for (sample in 0 until read * format.channels) {

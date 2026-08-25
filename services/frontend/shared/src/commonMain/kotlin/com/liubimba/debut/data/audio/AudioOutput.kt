@@ -9,6 +9,8 @@ expect class AudioOutput(
     fun pause()
     fun write(samples: FloatArray, frames: Int)
     fun flush()
+
+    fun drain()
     override fun close()
 }
 

@@ -12,6 +12,22 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+data class SelectedArea(
+    val start: Float = 0f,
+    val end: Float = 1f,
+) {
+    val isFull: Boolean get() = start <= 0f && end >= 1f
+
+    companion object {
+        val Full = SelectedArea()
+
+        fun of(start: Float, end: Float): SelectedArea = SelectedArea(
+            start = minOf(start, end).coerceIn(0f, 1f),
+            end = maxOf(start, end).coerceIn(0f, 1f),
+        )
+    }
+}
+
 class SongPlayer(
     private val mixer: StemMixer,
     private val scope: CoroutineScope,
@@ -21,6 +37,15 @@ class SongPlayer(
 
     private val output = AudioOutput(mixer.format.sampleRate, mixer.format.channels, bufferFrames)
     private val buffer = FloatArray(bufferFrames * mixer.format.channels)
+
+    private val _selectedArea = MutableStateFlow<SelectedArea>(SelectedArea())
+    val selectedArea = _selectedArea.asStateFlow()
+
+    private val _finished = MutableStateFlow(false)
+    val finished = _finished.asStateFlow()
+
+    private val _positionVersion = MutableStateFlow(0L)
+    val positionVersion = _positionVersion.asStateFlow()
 
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying = _isPlaying.asStateFlow()
@@ -37,10 +62,12 @@ class SongPlayer(
         if (_isPlaying.value) {
             return
         }
-        if (positionFrames >= format.frameCount) {
-            seekTo(0L)
+        if (_finished.value || positionFrames >= limitFrame()) {
+            log.d { "Requested exhausted player to play. Seek to start frame ${startFrame()}" }
+            seekTo(startFrame())
         }
         _isPlaying.value = true
+        _finished.value = false
         output.play()
         if (feed?.isActive != true) {
             feed = scope.launch(ioDispatcher) {
@@ -63,10 +90,25 @@ class SongPlayer(
         stopFeeding()
         val target = frame.coerceIn(0, format.frameCount)
         mixer.seekTo(target)
+        _finished.value = false
         seekOrigin = target
         framesPlayedAtSeek = output.framesPlayed
+        _positionVersion.value++
+
+        if (frame > limitFrame() || frame < startFrame()) {
+            selectArea(SelectedArea.Full.start, SelectedArea.Full.end)
+        }
         if (resume) {
             play()
+        }
+    }
+
+    suspend fun selectArea(start: Float, end: Float) {
+        _selectedArea.value = SelectedArea.of(start, end)
+        if (!_isPlaying.value) {
+            if (positionFrames < startFrame() || positionFrames > limitFrame()) {
+                seekTo(startFrame())
+            }
         }
     }
 
@@ -85,26 +127,46 @@ class SongPlayer(
         feed = null
     }
 
+    private fun startFrame(): Long = (selectedArea.value.start * format.frameCount).toLong()
+
+    private fun limitFrame(): Long = (selectedArea.value.end * format.frameCount).toLong()
+
     private suspend fun feedLoop() {
+        var fed = seekOrigin
         try {
             while (currentCoroutineContext().isActive) {
                 if (!_isPlaying.value) {
                     _isPlaying.first { it }
                     continue
                 }
-                val produced = mixer.mix(buffer, bufferFrames)
+
+                val room = (limitFrame() - fed).coerceAtMost(bufferFrames.toLong()).toInt()
+                if (room <= 0) {
+                    log.i { "Out of room. Break feed loop" }
+                    finish()
+                    return
+                }
+                val produced = mixer.mix(buffer, room)
                 if (produced == 0) {
-                    _isPlaying.value = false
-                    output.pause()
+                    log.i { "Mixer exhausted. Break feed loop" }
+                    finish()
                     return
                 }
                 output.write(buffer, produced)
+                fed += produced
             }
         } catch (failure: Exception) {
             if (currentCoroutineContext().isActive) {
                 throw failure
             }
         }
+    }
+
+    private fun finish() {
+        output.drain()
+        _isPlaying.value = false
+        _finished.value = true
+        output.pause()
     }
 
     private companion object {

@@ -27,6 +27,9 @@ fun TrackRow(
     progress: () -> Float,
     onToggleMute: () -> Unit,
     onSeek: (Float) -> Unit,
+    startArea: Float,
+    endArea: Float,
+    onSelectArea: (Float, Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -56,6 +59,9 @@ fun TrackRow(
             waveform = waveform,
             progress = progress,
             onSeek = onSeek,
+            startArea = startArea,
+            endArea = endArea,
+            onSelectedArea = onSelectArea,
             modifier = Modifier.fillMaxWidth().height(SongScreenDefaults.waveHeight),
         )
     }

@@ -39,7 +39,6 @@ class WavReader(private val path: Path) : AutoCloseable {
         val capacity = (destination.size / format.channels).toLong()
         val available =
             minOf(frames.toLong(), capacity, format.frameCount - position).toInt()
-        log.d { "capacity $capacity available $available" }
         if (available <= 0) {
             return 0
         }
@@ -51,7 +50,6 @@ class WavReader(private val path: Path) : AutoCloseable {
             destination[sample] = ((high shl 8) or low) / SAMPLE_SCALE
         }
         position += available
-        log.d { "position $position" }
         return available
     }
 
