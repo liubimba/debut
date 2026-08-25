@@ -34,4 +34,7 @@
     <string name="pause">Pause</string>
     <string name="track_instrumental">Instrumental</string>
     <string name="track_vocalist">Vocalist</string>
+    <string name="reset_area">Reset the selection</string>
+    <string name="song_no_stems">The song files are missing</string>
+    <string name="song_playback_unavailable">Playback is unavailable on this device</string>
 </resources>

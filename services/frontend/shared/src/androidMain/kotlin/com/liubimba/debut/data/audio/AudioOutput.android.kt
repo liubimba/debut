@@ -54,6 +54,11 @@ actual class AudioOutput actual constructor(
         track.write(bytes, 0, needed)
     }
 
+    actual fun drain() {
+        flushedFrames = framesPlayed
+        track.stop()
+    }
+
     actual fun flush() {
         track.pause()
         flushedFrames = framesPlayed

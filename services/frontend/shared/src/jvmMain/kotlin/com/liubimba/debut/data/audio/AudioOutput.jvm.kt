@@ -42,6 +42,8 @@ actual class AudioOutput actual constructor(
 
     actual fun flush() = line.flush()
 
+    actual fun drain() = line.drain()
+
     private companion object {
         const val BITS_PER_SAMPLE = 16
     }

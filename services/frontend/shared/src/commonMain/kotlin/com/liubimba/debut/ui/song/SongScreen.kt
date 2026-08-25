@@ -70,16 +70,17 @@ fun SongScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
     val isRecording by viewModel.isRecording.collectAsStateWithLifecycle()
+    val selectedArea by viewModel.selectedArea.collectAsStateWithLifecycle()
+    val positionVersion by viewModel.positionVersion.collectAsStateWithLifecycle()
 
     var viewType by remember { mutableStateOf(VocalViewType.VocalTrack) }
-    val position = remember { mutableLongStateOf(0L) }
+    val tick = remember { mutableLongStateOf(0L) }
 
-    LaunchedEffect(isPlaying) {
+    LaunchedEffect(isPlaying, positionVersion) {
+        tick.longValue++
         while (isPlaying) {
-            withInfiniteAnimationFrameNanos { }
-            position.longValue = viewModel.positionFrames
+            withInfiniteAnimationFrameNanos { nanos -> tick.longValue = nanos }
         }
-        position.longValue = viewModel.positionFrames
     }
 
     Column(
@@ -128,11 +129,22 @@ fun SongScreen(
                             label = stringResource(track.group.titleRes),
                             waveform = track.waveform,
                             muted = track.muted,
-                            progress = { position.longValue.toFloat() / current.durationFrames },
+                            progress = {
+                                tick.longValue
+                                viewModel.positionFrames.toFloat() / current.durationFrames
+                            },
                             onToggleMute = { viewModel.toggleMute(track.group) },
+                            startArea = selectedArea.start,
+                            endArea = selectedArea.end,
+                            onSelectArea = { anchor, end ->
+                                viewModel.selectArea(
+                                    anchor,
+                                    end
+                                )
+
+                            },
                             onSeek = { fraction ->
-                                position.longValue = (fraction * current.durationFrames).toLong()
-                                viewModel.seekTo(position.longValue)
+                                viewModel.seekTo((fraction * current.durationFrames).toLong())
                             },
                         )
                         if (index < current.tracks.lastIndex) {
@@ -144,10 +156,15 @@ fun SongScreen(
                 TransportBar(
                     isPlaying = isPlaying,
                     isRecording = isRecording,
-                    positionSeconds = { position.longValue.toDouble() / viewModel.sampleRate },
+                    positionSeconds = {
+                        tick.longValue
+                        viewModel.positionFrames.toDouble() / viewModel.sampleRate
+                    },
                     durationSeconds = current.durationFrames.toDouble() / viewModel.sampleRate,
                     onToggleRecord = viewModel::toggleRecord,
                     onTogglePlay = viewModel::togglePlay,
+                    selectedArea = selectedArea,
+                    onResetArea = { viewModel.selectArea(0f, 1f) },
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
@@ -163,7 +180,10 @@ fun SongScreen(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
-                Text(text = current.message, color = MaterialTheme.colorScheme.error)
+                Text(
+                    text = stringResource(current.reason),
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
         }
     }

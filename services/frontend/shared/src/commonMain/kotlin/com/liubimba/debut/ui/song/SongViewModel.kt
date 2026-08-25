@@ -2,7 +2,9 @@ package com.liubimba.debut.ui.song
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.liubimba.debut.data.audio.MixerTrack
+import com.liubimba.debut.data.audio.SelectedArea
 import com.liubimba.debut.data.audio.SongPlayer
 import com.liubimba.debut.data.audio.StemMixer
 import com.liubimba.debut.data.audio.WavReader
@@ -12,6 +14,10 @@ import com.liubimba.debut.data.entity.StemType
 import com.liubimba.debut.data.repository.SongsRepository
 import com.liubimba.debut.data.storage.SongsStorage
 import com.liubimba.debut.data.storage.ioDispatcher
+import debut.shared.generated.resources.Res
+import debut.shared.generated.resources.song_no_stems
+import debut.shared.generated.resources.song_playback_unavailable
+import org.jetbrains.compose.resources.StringResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -30,10 +36,11 @@ data class SongTrack(
     val muted: Boolean,
 )
 
+
 sealed interface SongState {
     data object Loading : SongState
     data class Ready(val tracks: List<SongTrack>, val durationFrames: Long) : SongState
-    data class Unavailable(val message: String) : SongState
+    data class Unavailable(val reason: StringResource) : SongState
 
 }
 
@@ -43,6 +50,7 @@ class SongViewModel(
     private val songsStorage: SongsStorage
 ) :
     ViewModel() {
+    private val log = Logger.withTag("SongViewModel")
     private val playerScope = CoroutineScope(SupervisorJob() + ioDispatcher)
     val song: StateFlow<SongMetadata?> = songsRepository.songs
         .map { songs -> songs[songId] }
@@ -53,11 +61,18 @@ class SongViewModel(
     private val _isPlaying = MutableStateFlow<Boolean>(false)
     val isPlaying = _isPlaying.asStateFlow()
 
+    private val _selectedArea = MutableStateFlow<SelectedArea>(SelectedArea())
+    val selectedArea = _selectedArea.asStateFlow()
+
+    private val _positionVersion = MutableStateFlow(0L)
+    val positionVersion = _positionVersion.asStateFlow()
+
     private val _isRecording = MutableStateFlow<Boolean>(false)
     val isRecording = _isRecording.asStateFlow()
 
     private var player: SongPlayer? = null
     private val mixerTracks = mutableMapOf<StemType, MixerTrack>()
+
 
     val positionFrames: Long get() = player?.positionFrames ?: 0
     val sampleRate: Int get() = player?.format?.sampleRate ?: 1
@@ -76,6 +91,17 @@ class SongViewModel(
         val current = player ?: return
         playerScope.launch {
             if (current.isPlaying.value) current.pause() else current.play()
+        }
+    }
+
+    fun selectArea(start: Float, end: Float) {
+        val current = player ?: return
+        log.d { "Select $start $end" }
+        playerScope.launch {
+            current.selectArea(
+                start = start,
+                end = end
+            )
         }
     }
 
@@ -117,7 +143,8 @@ class SongViewModel(
             StemType.entries.filter { songsStorage.stems.has(songId, it) }
         }
         if (present.isEmpty()) {
-            _state.value = SongState.Unavailable("no stems on disk")
+            _state.value = SongState.Unavailable(Res.string.song_no_stems)
+            log.w { "song $songId has no stems on disk" }
             return
         }
         val waveforms = present.associateWith { waveformOf(it) }
@@ -141,6 +168,12 @@ class SongViewModel(
             playerScope.launch {
                 opened.isPlaying.collect { _isPlaying.value = it }
             }
+            playerScope.launch {
+                opened.selectedArea.collect { _selectedArea.value = it }
+            }
+            playerScope.launch {
+                opened.positionVersion.collect { _positionVersion.value = it }
+            }
             _state.value = SongState.Ready(
                 tracks = groups.map { (group, stems) ->
                     SongTrack(
@@ -152,7 +185,8 @@ class SongViewModel(
                 durationFrames = opened.format.frameCount
             )
         }.onFailure { failure ->
-            _state.value = SongState.Unavailable(failure.message ?: "playback unavailable")
+            _state.value = SongState.Unavailable(Res.string.song_playback_unavailable)
+            log.e(failure) { "cannot open playback for $songId" }
         }
     }
 }
