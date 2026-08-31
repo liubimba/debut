@@ -35,7 +35,7 @@ import com.liubimba.debut.ui.theme.DebutTheme
 private val log = Logger.withTag("App")
 
 @Composable
-fun App(container: AppContainer) {
+fun App(container: AppContainer, onRequestMicrophone: () -> Unit = {}) {
     val navController = rememberNavController()
     val entry by navController.currentBackStackEntryAsState()
     val currentTab = entry?.destination?.toTab() ?: Destination.Library
@@ -75,6 +75,8 @@ fun App(container: AppContainer) {
                                     songsRepository = container.songsRepository,
                                     songsStorage = container.songsStorage,
                                     onBack = { navController.popBackStack() },
+                                    microphoneGranted = container.microphoneGranted,
+                                    onRequestMicrophone = onRequestMicrophone,
                                 )
                             }
                         }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,12 +22,31 @@ import androidx.compose.ui.unit.Dp
 import com.liubimba.debut.data.audio.Waveform
 import com.liubimba.debut.ui.theme.DebutTheme
 
-private data class WaveformColors(
+@Immutable
+data class WaveformColors(
     val played: Color,
     val remaining: Color,
     val marker: Color,
     val outsideAlpha: Float
-)
+) {
+
+    companion object {
+        @Composable
+        fun default(
+            played: Color = DebutTheme.colors.noteActive,
+            remaining: Color = DebutTheme.colors.note,
+            marker: Color = MaterialTheme.colorScheme.primary,
+            outsideAlpha: Float = SongScreenDefaults.outsideAreaAlpha,
+        ): WaveformColors {
+            return WaveformColors(
+                played = played,
+                remaining = remaining,
+                marker = marker,
+                outsideAlpha = outsideAlpha,
+            )
+        }
+    }
+}
 
 private fun DrawScope.drawBars(
     bars: FloatArray,
@@ -35,17 +55,21 @@ private fun DrawScope.drawBars(
     area: ClosedFloatingPointRange<Float>,
     edge: Float,
     minBarHeightFraction: Float,
-    colors: WaveformColors
+    colors: WaveformColors,
+    offset: Offset = Offset.Zero
 ) {
     val middle = size.height / 2f
     bars.forEachIndexed { index, peak ->
+        if (peak < 0f) {
+            return@forEachIndexed
+        }
         val x = index * step
         val center = (x + barWidth / 2f) / size.width
         val height = peak.coerceAtLeast(minBarHeightFraction) * size.height
         val color = if (x <= edge) colors.played else colors.remaining
         drawRect(
             color = if (center in area) color else color.copy(alpha = colors.outsideAlpha),
-            topLeft = Offset(x, middle - height / 2f),
+            topLeft = offset.plus(Offset(x, middle - height / 2f)),
             size = Size(barWidth, height),
         )
     }
@@ -81,18 +105,13 @@ fun WaveformView(
     endArea: Float,
     onSelectedArea: (Float, Float) -> Unit,
     minBarHeightFraction: Float = SongScreenDefaults.minBarHeightFraction,
+    offset: Offset = Offset.Zero,
+    colors: WaveformColors = WaveformColors.default()
 ) {
-    val colors = WaveformColors(
-        played = DebutTheme.colors.noteActive,
-        remaining = DebutTheme.colors.note,
-        marker = MaterialTheme.colorScheme.primary,
-        outsideAlpha = SongScreenDefaults.outsideAreaAlpha,
-    )
-
     BoxWithConstraints(
         modifier
             .clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(if (startArea == 0f && endArea == 1f) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant)
     ) {
         val columns = (maxWidth / (barWidth + barGap)).toInt().coerceAtLeast(1)
         val bars = remember(waveform, columns) { waveform.resampleTo(columns) }
@@ -140,6 +159,7 @@ fun WaveformView(
                 edge = edge,
                 minBarHeightFraction = minBarHeightFraction,
                 colors = colors,
+                offset = offset
             )
 
             drawMarker(edge, markerWidth, colors.marker)

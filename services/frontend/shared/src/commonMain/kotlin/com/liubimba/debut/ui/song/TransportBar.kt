@@ -19,8 +19,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Circle
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.MicOff
 import com.composables.icons.lucide.Pause
 import com.composables.icons.lucide.Play
 import com.composables.icons.lucide.Square
@@ -33,6 +35,7 @@ import debut.shared.generated.resources.pause
 import debut.shared.generated.resources.play
 import debut.shared.generated.resources.record
 import debut.shared.generated.resources.reset_area
+import debut.shared.generated.resources.song_allow_microphone
 import debut.shared.generated.resources.stop
 import org.jetbrains.compose.resources.stringResource
 
@@ -52,7 +55,10 @@ private fun ResetAreaButton(
         modifier = Modifier
             .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = SongScreenDefaults.headerSpacing)
+            .padding(
+                start = SongScreenDefaults.blockSpacing,
+                end = SongScreenDefaults.blockSpacing - SongScreenDefaults.inlineIconSize
+            )
     ) {
         Text(
             text = formatDuration(startSeconds)
@@ -63,7 +69,8 @@ private fun ResetAreaButton(
         )
 
         IconButton(
-            onClick = onResetArea
+            onClick = onResetArea,
+            modifier = Modifier.padding(0.dp)
         ) {
             Icon(
                 imageVector = Lucide.X,
@@ -79,6 +86,8 @@ private fun ResetAreaButton(
 fun TransportBar(
     isPlaying: Boolean,
     isRecording: Boolean,
+    microphoneGranted: Boolean,
+    onRequestMicrophone: () -> Unit,
     positionSeconds: () -> Double,
     selectedArea: SelectedArea,
     onResetArea: () -> Unit,
@@ -127,22 +136,42 @@ fun TransportBar(
                 )
             }
 
-            Button(
-                onClick = onToggleRecord,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError,
-                ),
-                modifier = Modifier.defaultMinSize(minHeight = SongScreenDefaults.minTouchTarget),
-            ) {
-                Icon(
-                    imageVector = if (isRecording) Lucide.Square else Lucide.Circle,
-                    contentDescription = null,
-                    modifier = Modifier.size(SongScreenDefaults.inlineIconSize),
-                )
-                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(text = stringResource(if (isRecording) Res.string.stop else Res.string.record))
+            if (microphoneGranted) {
+                Button(
+                    onClick = onToggleRecord,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError,
+                    ),
+                    modifier = Modifier.defaultMinSize(minHeight = SongScreenDefaults.minTouchTarget),
+                ) {
+                    Icon(
+                        imageVector = if (isRecording) Lucide.Square else Lucide.Circle,
+                        contentDescription = null,
+                        modifier = Modifier.size(SongScreenDefaults.inlineIconSize),
+                    )
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(text = stringResource(if (isRecording) Res.string.stop else Res.string.record))
+                }
+            } else {
+                Button(
+                    onClick = onRequestMicrophone,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                    modifier = Modifier.defaultMinSize(minHeight = SongScreenDefaults.minTouchTarget),
+                ) {
+                    Icon(
+                        imageVector = Lucide.MicOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(SongScreenDefaults.inlineIconSize),
+                    )
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(text = stringResource(Res.string.song_allow_microphone))
+                }
             }
+
 
             Button(
                 onClick = onTogglePlay,

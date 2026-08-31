@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.io.files.Path
 
 class AppContainer(path: String, debug: Boolean = true) : AutoCloseable {
@@ -17,6 +18,8 @@ class AppContainer(path: String, debug: Boolean = true) : AutoCloseable {
     }
 
     private val log = Logger.withTag(TAG)
+
+    val microphoneGranted = MutableStateFlow(false)
 
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     val api = KtorDebutApi()

@@ -31,6 +31,7 @@ fun TrackRow(
     endArea: Float,
     onSelectArea: (Float, Float) -> Unit,
     modifier: Modifier = Modifier,
+    colors: WaveformColors = WaveformColors.default()
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(SongScreenDefaults.headerSpacing),
@@ -63,6 +64,7 @@ fun TrackRow(
             endArea = endArea,
             onSelectedArea = onSelectArea,
             modifier = Modifier.fillMaxWidth().height(SongScreenDefaults.waveHeight),
+            colors = colors
         )
     }
 }

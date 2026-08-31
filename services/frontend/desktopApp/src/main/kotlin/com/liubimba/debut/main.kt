@@ -9,6 +9,8 @@ fun main() {
         path = System.getProperty("user.home") + "/.debut",
     )
 
+    container.microphoneGranted.value = true
+
     application {
         Window(
             onCloseRequest = {

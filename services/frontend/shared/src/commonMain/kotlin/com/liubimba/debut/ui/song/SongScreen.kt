@@ -54,6 +54,7 @@ import debut.shared.generated.resources.range
 import debut.shared.generated.resources.song_tempo_value
 import debut.shared.generated.resources.song_unknown_value
 import debut.shared.generated.resources.tempo
+import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
@@ -63,15 +64,22 @@ fun SongScreen(
     songsRepository: SongsRepository,
     songsStorage: SongsStorage,
     onBack: () -> Unit = {},
+    microphoneGranted: StateFlow<Boolean>,
+    onRequestMicrophone: () -> Unit = {},
 ) {
     val viewModel: SongViewModel =
-        viewModel { SongViewModel(id, songsRepository, songsStorage) }
+        viewModel { SongViewModel(id, songsRepository, songsStorage, microphoneGranted) }
     val song by viewModel.song.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
     val isRecording by viewModel.isRecording.collectAsStateWithLifecycle()
     val selectedArea by viewModel.selectedArea.collectAsStateWithLifecycle()
     val positionVersion by viewModel.positionVersion.collectAsStateWithLifecycle()
+    val granted by microphoneGranted.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.requestMicrophone.collect { onRequestMicrophone() }
+    }
 
     var viewType by remember { mutableStateOf(VocalViewType.VocalTrack) }
     val tick = remember { mutableLongStateOf(0L) }
@@ -112,7 +120,6 @@ fun SongScreen(
                     verticalArrangement = Arrangement.spacedBy(SongScreenDefaults.trackSpacing),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f)
                         .shadow(
                             elevation = SongScreenDefaults.panelElevation,
                             shape = MaterialTheme.shapes.extraLarge,
@@ -124,7 +131,15 @@ fun SongScreen(
                         .padding(SongScreenDefaults.panelInset)
                         .verticalScroll(rememberScrollState()),
                 ) {
-                    current.tracks.forEachIndexed { index, track ->
+                    current.stemsTracks.forEachIndexed { index, track ->
+                        val waveformColors =
+                            if (track.group == TrackGroup.Recording && isRecording)
+                                WaveformColors.default(
+                                    played = MaterialTheme.colorScheme.error,
+                                )
+                            else
+                                WaveformColors.default()
+
                         TrackRow(
                             label = stringResource(track.group.titleRes),
                             waveform = track.waveform,
@@ -146,16 +161,19 @@ fun SongScreen(
                             onSeek = { fraction ->
                                 viewModel.seekTo((fraction * current.durationFrames).toLong())
                             },
+                            colors = waveformColors
                         )
-                        if (index < current.tracks.lastIndex) {
+                        if (index < current.stemsTracks.size - 1) {
                             TrackDivider()
                         }
                     }
                 }
-
+                Spacer(Modifier.weight(1f))
                 TransportBar(
                     isPlaying = isPlaying,
                     isRecording = isRecording,
+                    microphoneGranted = granted,
+                    onRequestMicrophone = onRequestMicrophone,
                     positionSeconds = {
                         tick.longValue
                         viewModel.positionFrames.toDouble() / viewModel.sampleRate
@@ -201,6 +219,7 @@ private fun BackToLibrary(onBack: () -> Unit) {
             .padding(vertical = SongScreenDefaults.backIconPadding),
     ) {
         Icon(
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             imageVector = Lucide.ArrowLeft,
             contentDescription = null,
             modifier = Modifier
@@ -208,7 +227,10 @@ private fun BackToLibrary(onBack: () -> Unit) {
                 .padding(SongScreenDefaults.backIconPadding)
                 .size(SongScreenDefaults.inlineIconSize),
         )
-        Text(text = stringResource(Res.string.nav_library))
+        Text(
+            text = stringResource(Res.string.nav_library),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -226,11 +248,13 @@ private fun SongHeader(song: SongMetadata?) {
                 text = song?.name ?: unknown,
                 style = MaterialTheme.typography.headlineLarge,
             )
-            Text(
-                text = song?.author ?: unknown,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            song?.author?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
 
         Spacer(Modifier.weight(1f))

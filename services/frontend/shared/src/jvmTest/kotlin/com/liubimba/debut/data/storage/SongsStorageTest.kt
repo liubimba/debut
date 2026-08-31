@@ -3,6 +3,7 @@ package com.liubimba.debut.data.storage
 import com.liubimba.debut.data.audio.Waveform
 import com.liubimba.debut.data.entity.SongMetadata
 import com.liubimba.debut.data.entity.StemType
+import com.liubimba.debut.data.entity.TakeMetadata
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -77,6 +78,20 @@ class SongsStorageTest {
         storage.delete("song")
 
         assertNull(storage.waveforms.get("song", StemType.VOCALS))
+    }
+
+    @Test
+    fun savedTakeIsReadBackAndDeletedWithTheSong() = runBlocking {
+        val take = TakeMetadata(id = "take-1", startFrame = 44100, frameCount = 22050)
+
+        storage.takes.save("song", take)
+
+        assertEquals(take, storage.takes.readAll("song")["take-1"])
+        assertTrue(storage.takes.pathOf("song", "take-1").toString().endsWith("take-1.wav"))
+
+        storage.delete("song")
+
+        assertTrue(storage.takes.readAll("song").isEmpty())
     }
 
     @Test

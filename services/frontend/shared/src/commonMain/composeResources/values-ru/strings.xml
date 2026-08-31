@@ -37,4 +37,9 @@
     <string name="reset_area">Сбросить выделение</string>
     <string name="song_no_stems">Файлы песни не найдены</string>
     <string name="song_playback_unavailable">Воспроизведение недоступно на этом устройстве</string>
+    <string name="song_microphone_unavailable">Микрофон недоступен</string>
+    <string name="song_microphone_denied">Разрешите доступ к микрофону</string>
+    <string name="song_allow_microphone">Разрешить</string>
+    <string name="track_recording">Моя запись</string>
+    <string name="track_recording_empty">Записи пока нет</string>
 </resources>

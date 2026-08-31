@@ -5,6 +5,7 @@ import com.liubimba.debut.data.api.dto.NoteDTO
 import com.liubimba.debut.data.audio.Waveform
 import com.liubimba.debut.data.entity.SongMetadata
 import com.liubimba.debut.data.entity.StemType
+import com.liubimba.debut.data.entity.TakeMetadata
 import io.github.vinceglb.filekit.utils.div
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -29,15 +30,18 @@ class SongsStorage(private val root: Path) {
     val meta = Meta()
     val stems = Stems()
     val notes = Notes()
+    val takes = Takes()
     val waveforms = Waveforms()
 
     suspend fun delete(id: String): Unit = writes.withLock {
         meta.deleteUnlocked(id)
         stems.deleteUnlocked(id)
         notes.deleteUnlocked(id)
+        takes.deleteUnlocked(id)
         waveforms.deleteUnlocked(id)
         log.i { "deleted song $id" }
     }
+
 
     inner class Meta {
         private val filepath = root.div("songs.meta.json")
@@ -177,6 +181,49 @@ class SongsStorage(private val root: Path) {
         }
         log.v { "wrote $target" }
         return target
+    }
+
+    inner class Takes {
+        private val path = root.div("takes")
+        fun pathOf(songId: String, takeId: String): Path =
+            path.div(songId).div("$takeId.wav")
+
+        suspend fun readAll(songId: String): Map<String, TakeMetadata> =
+            withContext(ioDispatcher) {
+                val source = indexOf(songId)
+                if (!SystemFileSystem.exists(source)) {
+                    return@withContext emptyMap()
+                }
+                runCatching {
+                    SystemFileSystem.source(source).buffered().use {
+                        json.decodeFromString<Map<String, TakeMetadata>>(it.readString())
+                    }
+                }.getOrElse { failure ->
+                    log.e(failure) { "unreadable takes index at $source" }
+                    emptyMap()
+                }
+            }
+
+        suspend fun save(songId: String, take: TakeMetadata): Unit = writes.withLock {
+            val items = readAll(songId) + (take.id to take)
+            withContext(ioDispatcher) {
+                writeAtomically(indexOf(songId)) {
+                    it.writeString(json.encodeToString(items))
+                }
+                log.d { "saved take ${take.id} of $songId, ${take.frameCount} frames" }
+            }
+        }
+
+        suspend fun delete(songId: String): Unit = writes.withLock {
+            deleteUnlocked(songId)
+        }
+
+        internal suspend fun deleteUnlocked(songId: String) = withContext(ioDispatcher) {
+            deleteRecursively(path.div(songId))
+            log.d { "deleted takes of $songId" }
+        }
+
+        private fun indexOf(songId: String): Path = path.div(songId).div("takes.json")
     }
 
     inner class Waveforms {
