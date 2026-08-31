@@ -3,7 +3,7 @@ package com.liubimba.debut.ui.song
 import androidx.compose.ui.unit.dp
 
 internal object SongScreenDefaults {
-    val blockSpacing = 16.dp
+    val blockSpacing = 32.dp
     val headerSpacing = 8.dp
     val metaSpacing = 24.dp
     val trackSpacing = 12.dp

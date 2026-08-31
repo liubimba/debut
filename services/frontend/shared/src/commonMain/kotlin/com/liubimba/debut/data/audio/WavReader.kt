@@ -19,23 +19,22 @@ data class WavFormat(
     val durationSeconds: Double get() = frameCount.toDouble() / sampleRate
 }
 
-
-class WavReader(private val path: Path) : AutoCloseable {
+class WavReader(private val path: Path) : FrameSource {
     private val log = Logger.withTag("WavReader")
     private val layout = SystemFileSystem.source(path).buffered().use { readLayout(it) }
 
-    val format: WavFormat = layout.format
+    override val format: WavFormat = layout.format
 
     private var source: Source = openAt(0)
     private var position: Long = 0
 
-    fun seekTo(frame: Long) {
+    override fun seekTo(frame: Long) {
         source.close()
         position = frame.coerceIn(0, format.frameCount)
         source = openAt(position)
     }
 
-    fun readFrames(destination: FloatArray, frames: Int): Int {
+    override fun readFrames(destination: FloatArray, frames: Int): Int {
         val capacity = (destination.size / format.channels).toLong()
         val available =
             minOf(frames.toLong(), capacity, format.frameCount - position).toInt()

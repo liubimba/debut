@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.Instant
 import kotlin.time.TimeSource
 
 enum class ImportStage {
@@ -107,6 +108,14 @@ class SongsRepository(
         localStorage.delete(id)
         _songs.update { current -> current - id }
         log.i { "deleted song $id" }
+    }
+
+    suspend fun markTake(id: String, at: Instant) {
+        val current = _songs.value[id] ?: return
+        val updated = current.copy(lastTakeAt = at)
+        localStorage.meta.save(updated)
+        _songs.update { songs -> songs + (id to updated) }
+        log.i { "song $id has a take at $at" }
     }
 
     suspend fun load() {

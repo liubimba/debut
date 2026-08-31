@@ -3,6 +3,7 @@ package com.liubimba.debut.ui.song
 import com.liubimba.debut.data.entity.StemType
 import debut.shared.generated.resources.Res
 import debut.shared.generated.resources.track_instrumental
+import debut.shared.generated.resources.track_recording
 import debut.shared.generated.resources.track_vocalist
 import org.jetbrains.compose.resources.StringResource
 
@@ -15,4 +16,8 @@ enum class TrackGroup(val titleRes: StringResource, val stems: List<StemType>) {
         Res.string.track_vocalist,
         listOf(StemType.VOCALS),
     ),
+    Recording(
+        Res.string.track_recording,
+        listOf(StemType.RECORDING)
+    )
 }

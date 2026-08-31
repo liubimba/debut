@@ -24,4 +24,4 @@ fun FloatArray.writePcm16(destination: ByteArray, samples: Int) {
 }
 
 const val BYTES_PER_SAMPLE = 2
-private const val PCM16_MAX = 32767f
+const val PCM16_MAX = 32767f

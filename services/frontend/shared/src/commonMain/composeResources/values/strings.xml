@@ -37,4 +37,9 @@
     <string name="reset_area">Reset the selection</string>
     <string name="song_no_stems">The song files are missing</string>
     <string name="song_playback_unavailable">Playback is unavailable on this device</string>
+    <string name="song_microphone_unavailable">The microphone is unavailable</string>
+    <string name="song_microphone_denied">Allow microphone access to record</string>
+    <string name="song_allow_microphone">Allow</string>
+    <string name="track_recording">My recording</string>
+    <string name="track_recording_empty">Nothing recorded yet</string>
 </resources>
